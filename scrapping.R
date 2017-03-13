@@ -13,9 +13,11 @@ DB[a:(a+24)] <- all_drugs %>%
    html_text()
 a = a+25}
 all_drugs4 <- read_html('https://www.drugbank.ca/unearth/q?approved=1&button=&c=_score&d=down&illicit=1&investigational=1&nutraceutical=1&page=4&query=schizophrenia&searcher=drugs&vet_approved=1&withdrawn=1')
-DB[76:80] <- all_drugs4 %>% 
+DB4 <- all_drugs4 %>% 
   html_nodes(".btn-card")%>%
   html_text() 
+pom <- length(DB4) # uložení poslední stránky lékù
+DB[76:(75+pom)] <- DB4
 
 # vytvoøení pomocných promìnných
 Interactions <- character()
@@ -29,14 +31,14 @@ for (k in 1:length(DB)){
 Drug <- read_html(paste0(odkaz,DB[k])) #stažení dat z potøebné www
 
 ATC <- Drug %>% # uložení promìnné ATC
-  html_node("tr:nth-child(51) th+ td")%>%
+  html_node(css="tr:nth-child(51) > td > ul > li:nth-child(1) > a") %>% 
   html_text()
 
 Int <- Drug %>% # stažení dat pro vyhodnocení podmínky IF
   html_node(css="table#drug-interactions")
 Targ <- Drug %>% 
   html_node(css="table#moa-target-table")
-if (is.na(Int) == FALSE & is.na(Targ) == FALSE & ATC != 'Not Available'){  # uloží cíle a interakce jenom když existuje tabulka s interakcemi, cíli a ATC data
+if (is.na(Int) == FALSE & is.na(Targ) == FALSE & is.na(ATC) == FALSE){  # uloží cíle a interakce jenom když existuje tabulka s interakcemi, cíli a ATC data
   Name <- Drug %>% # uložení názvu léku
     html_node("td, strong")%>%
     html_text()
